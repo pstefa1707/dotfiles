@@ -1,0 +1,116 @@
+# Install oh-my-zsh if not present
+if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
+    echo "oh-my-zsh not found. Installing..."
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+fi
+
+# Path to oh-my-zsh installation
+export ZSH="$HOME/.oh-my-zsh"
+
+# History Configuration
+HISTSIZE=50000
+SAVEHIST=50000
+HISTFILE=~/.zsh_history
+setopt EXTENDED_HISTORY
+setopt SHARE_HISTORY
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_FIND_NO_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_SAVE_NO_DUPS
+setopt HIST_REDUCE_BLANKS
+setopt HIST_VERIFY
+
+# Autocompletion
+autoload -Uz compinit
+compinit
+setopt COMPLETE_ALIASES
+setopt AUTO_MENU
+setopt AUTO_LIST
+setopt COMPLETE_IN_WORD
+setopt ALWAYS_TO_END
+
+# Case-insensitive completion with colors
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+zstyle ':completion:*' menu select
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*:descriptions' format '%B%d%b'
+
+# Plugins
+plugins=(
+    git
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+    zsh-completions
+    history-substring-search
+)
+
+# Install plugins if they don't exist
+ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+
+if [[ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]]; then
+    git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+fi
+
+if [[ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]]; then
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+fi
+
+if [[ ! -d "$ZSH_CUSTOM/plugins/zsh-completions" ]]; then
+    git clone https://github.com/zsh-users/zsh-completions "$ZSH_CUSTOM/plugins/zsh-completions"
+fi
+
+source $ZSH/oh-my-zsh.sh
+
+# FZF Configuration
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# Detect OS for clipboard command
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    CLIPBOARD_CMD="pbcopy"
+else
+    CLIPBOARD_CMD="xclip -selection clipboard"
+fi
+
+export FZF_CTRL_R_OPTS="
+  --preview 'echo {}'
+  --preview-window up:3:hidden:wrap
+  --bind 'ctrl-/:toggle-preview'
+  --bind 'ctrl-y:execute-silent(echo -n {2..} | $CLIPBOARD_CMD)+abort'
+  --color header:italic
+  --header 'Press CTRL-Y to copy command into clipboard'"
+
+# Key bindings - FZF overrides default Ctrl+R
+bindkey '^R' fzf-history-widget
+bindkey '^T' fzf-file-widget
+bindkey '\ec' fzf-cd-widget
+
+# Arrow key history search
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+
+# NVM
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+# macOS-specific paths
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # Google Cloud SDK
+    if [ -f "$HOME/Downloads/google-cloud-sdk/path.zsh.inc" ]; then
+        . "$HOME/Downloads/google-cloud-sdk/path.zsh.inc"
+    fi
+    if [ -f "$HOME/Downloads/google-cloud-sdk/completion.zsh.inc" ]; then
+        . "$HOME/Downloads/google-cloud-sdk/completion.zsh.inc"
+    fi
+    
+    export PATH="$PATH:$HOME/Library/Python/3.9/bin"
+    export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
+fi
+
+# Common paths
+export PATH="$PATH:$HOME/.local/bin"
+
+# SSH agent
+eval "$(ssh-agent -s)" > /dev/null
