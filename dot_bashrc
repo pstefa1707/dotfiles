@@ -1,5 +1,6 @@
 # If zsh is installed and we're in an interactive shell, switch to zsh
 if [ -t 1 ] && command -v zsh &> /dev/null; then
     export SHELL=$(which zsh)
-    exec zsh
+    # Preserve SSH agent socket before exec
+    exec zsh -l
 fi

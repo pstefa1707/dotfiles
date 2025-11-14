@@ -113,8 +113,13 @@ fi
 # Common paths
 export PATH="$PATH:$HOME/.local/bin"
 
-# SSH agent
+# Start ssh-agent automatically
 eval "$(ssh-agent -s)" > /dev/null
+
+# Add keys only if they exist
+[ -f ~/.ssh/id_ed25519 ] && (ssh-add ~/.ssh/id_ed25519 2>/dev/null)
+[ -f ~/.ssh/id_rsa ] && (ssh-add ~/.ssh/id_rsa 2>/dev/null)
+
 if [[ -n $SSH_CONNECTION ]]; then
     PROMPT="%{$fg_bold[red]%}[SSH]%{$reset_color%} $PROMPT"
 fi
