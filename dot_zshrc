@@ -1,8 +1,8 @@
 # Path to oh-my-zsh installation
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="robbyrussell"  # or any other theme you prefer
-# History Configuration
 
+# History Configuration
 HISTSIZE=50000
 SAVEHIST=50000
 HISTFILE=~/.zsh_history
@@ -43,20 +43,24 @@ plugins=(
 
 # Install plugins if they don't exist
 ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-
 if [[ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]]; then
     git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
 fi
-
 if [[ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]]; then
     git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 fi
-
 if [[ ! -d "$ZSH_CUSTOM/plugins/zsh-completions" ]]; then
     git clone https://github.com/zsh-users/zsh-completions "$ZSH_CUSTOM/plugins/zsh-completions"
 fi
 
 source $ZSH/oh-my-zsh.sh
+
+# Install FZF if it doesn't exist
+if [[ ! -d "$HOME/.fzf" ]]; then
+    echo "Installing FZF..."
+    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+    ~/.fzf/install --key-bindings --completion --no-update-rc
+fi
 
 # FZF Configuration
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
@@ -76,10 +80,12 @@ export FZF_CTRL_R_OPTS="
   --color header:italic
   --header 'Press CTRL-Y to copy command into clipboard'"
 
-# Key bindings - FZF overrides default Ctrl+R
-bindkey '^R' fzf-history-widget
-bindkey '^T' fzf-file-widget
-bindkey '\ec' fzf-cd-widget
+# Key bindings - FZF overrides default Ctrl+R (must come after FZF is sourced)
+if [[ -f ~/.fzf.zsh ]]; then
+    bindkey '^R' fzf-history-widget
+    bindkey '^T' fzf-file-widget
+    bindkey '\ec' fzf-cd-widget
+fi
 
 # Arrow key history search
 bindkey '^[[A' history-substring-search-up
@@ -109,7 +115,6 @@ export PATH="$PATH:$HOME/.local/bin"
 
 # SSH agent
 eval "$(ssh-agent -s)" > /dev/null
-
 if [[ -n $SSH_CONNECTION ]]; then
     PROMPT="%{$fg_bold[red]%}[SSH]%{$reset_color%} $PROMPT"
 fi
